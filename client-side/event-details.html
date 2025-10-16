@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app="charityApp">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Details - Charity Events</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
 </head>
-<body>
+<body ng-controller="EventDetailsController">
     <!-- Navigation -->
     <nav>
         <ul>
@@ -16,51 +17,305 @@
     </nav>
 
     <div class="container">
-        <div class="card">
-            <div id="event-details">
-                <div class="loading">Loading...</div>
+        <!-- Loading状态 -->
+        <div ng-show="loading" class="card">
+            <div class="loading">Loading event details...</div>
+        </div>
+        
+        <!-- 错误提示 -->
+        <div ng-show="error" class="card">
+            <div class="no-results">{{error}}</div>
+        </div>
+        
+        <!-- 活动详情 -->
+        <div ng-show="!loading && !error">
+            <div class="card">
+                <h1>{{event.name}}</h1>
+                
+                <div class="event-details-grid">
+                    <div class="details-section">
+                        <h3>Event Information</h3>
+                        <p><strong>📅 Date:</strong> {{event.date | date:'fullDate'}} at {{event.date | date:'shortTime'}}</p>
+                        <p><strong>📍 Location:</strong> {{event.location}}</p>
+                        <p><strong>🏷️ Category:</strong> {{event.category_name}}</p>
+                        <p><strong>💰 Ticket Price:</strong> ${{event.ticket_price}}</p>
+                        <p><strong>🎯 Fundraising Goal:</strong> ${{event.goal_amount}}</p>
+                        <p><strong>✅ Amount Raised:</strong> ${{event.current_amount}} ({{getProgress()}}%)</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" ng-style="{'width': getProgress() + '%'}"></div>
+                        </div>
+                        <p><strong>📝 Description:</strong></p>
+                        <p class="description">{{event.description || 'No description available'}}</p>
+                    </div>
+                    
+                    <!-- 天气预报部分 -->
+                    <div class="weather-section" ng-show="event.latitude && event.longitude">
+                        <h3>🌤️ Weather Forecast</h3>
+                        <div ng-show="weatherLoading" class="loading">Loading weather...</div>
+                        <div ng-show="!weatherLoading && weather" class="weather-info">
+                            <p><strong>Temperature:</strong> {{weather.temperature_max}}°C / {{weather.temperature_min}}°C</p>
+                            <p><strong>Conditions:</strong> {{weather.description}}</p>
+                            <p class="weather-icon">{{getWeatherIcon(weather.code)}}</p>
+                        </div>
+                        <div ng-show="weatherError" class="weather-error">
+                            <p>{{weatherError}}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="register-btn" ng-click="goToRegister()">
+                    Register for this Event
+                </button>
             </div>
-            <button class="register-btn" id="register-btn">Register Now</button>
+            
+            <!-- 注册列表 -->
+            <div class="card">
+                <h2>Registrations ({{event.registrations.length}})</h2>
+                
+                <div ng-show="event.registrations.length === 0" class="no-results">
+                    No registrations yet. Be the first to register!
+                </div>
+                
+                <div ng-show="event.registrations.length > 0" class="registrations-list">
+                    <div ng-repeat="reg in event.registrations" class="registration-item">
+                        <div class="reg-info">
+                            <strong>{{reg.full_name}}</strong>
+                            <span class="reg-email">{{reg.email}}</span>
+                        </div>
+                        <div class="reg-details">
+                            <span>{{reg.tickets_count}} ticket(s)</span>
+                            <span class="reg-amount">${{reg.total_amount}}</span>
+                            <span class="reg-date">{{reg.registration_date | date:'short'}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const eventId = urlParams.get('id');
-
-        if (!eventId) {
-            document.getElementById('event-details').innerHTML = '<div class="no-results">Event ID not specified</div>';
-            document.getElementById('register-btn').style.display = 'none';
-        } else {
-            loadEventDetails(eventId);
-        }
-
-        async function loadEventDetails(eventId) {
-            const details = document.getElementById('event-details');
-            details.innerHTML = '<div class="loading">Loading...</div>';
+        var app = angular.module('charityApp', []);
+        
+        app.controller('EventDetailsController', function($scope, $http, $window, $location) {
+            $scope.event = {};
+            $scope.loading = true;
+            $scope.error = null;
+            $scope.weather = null;
+            $scope.weatherLoading = false;
+            $scope.weatherError = null;
             
-            try {
-                const response = await fetch(`/api/events/${eventId}`);
-                const event = await response.json();
-                
-                details.innerHTML = `
-                    <h2>${event.name}</h2>
-                    <p><strong>📅 Date:</strong> ${new Date(event.date).toLocaleString()}</p>
-                    <p><strong>📍 Location:</strong> ${event.location}</p>
-                    <p><strong>🏷️ Category:</strong> ${event.category_name}</p>
-                    <p><strong>💰 Ticket Price:</strong> $${event.ticket_price}</p>
-                    <p><strong>🎯 Fundraising Goal:</strong> $${event.goal_amount}</p>
-                    <p><strong>✅ Amount Raised:</strong> $${event.current_amount}</p>
-                    <p><strong>📝 Description:</strong> ${event.description || 'No description available'}</p>
-                `;
-            } catch (error) {
-                details.innerHTML = '<div class="no-results">Failed to load event details</div>';
+            // 天气代码映射
+            $scope.weatherCodes = {
+                0: 'Clear sky',
+                1: 'Mainly clear',
+                2: 'Partly cloudy',
+                3: 'Overcast',
+                45: 'Fog',
+                48: 'Depositing rime fog',
+                51: 'Light drizzle',
+                53: 'Moderate drizzle',
+                55: 'Dense drizzle',
+                61: 'Light rain',
+                63: 'Moderate rain',
+                65: 'Heavy rain',
+                80: 'Light rain showers',
+                81: 'Moderate rain showers',
+                82: 'Violent rain showers',
+                95: 'Thunderstorm'
+            };
+            
+            // 获取活动ID
+            var urlParams = new URLSearchParams($window.location.search);
+            var eventId = urlParams.get('id');
+            
+            if (!eventId) {
+                $scope.error = 'Event ID not specified';
+                $scope.loading = false;
+                return;
             }
-        }
-
-        document.getElementById('register-btn').addEventListener('click', () => {
-            alert('Registration feature coming soon!');
+            
+            // 加载活动详情
+            $scope.loadEventDetails = function() {
+                $http.get('http://localhost:3000/api/events/' + eventId)
+                    .then(function(response) {
+                        $scope.event = response.data;
+                        $scope.loading = false;
+                        
+                        // 如果有经纬度，加载天气信息
+                        if ($scope.event.latitude && $scope.event.longitude) {
+                            $scope.loadWeather();
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error('Error loading event:', error);
+                        $scope.error = 'Failed to load event details';
+                        $scope.loading = false;
+                    });
+            };
+            
+            // 加载天气信息
+            $scope.loadWeather = function() {
+                $scope.weatherLoading = true;
+                
+                // 获取活动日期
+                var eventDate = new Date($scope.event.date);
+                var dateStr = eventDate.toISOString().split('T')[0];
+                
+                // 调用Open-Meteo API
+                var weatherUrl = 'https://api.open-meteo.com/v1/forecast?' +
+                    'latitude=' + $scope.event.latitude +
+                    '&longitude=' + $scope.event.longitude +
+                    '&daily=weather_code,temperature_2m_max,temperature_2m_min' +
+                    '&timezone=Australia/Sydney' +
+                    '&start_date=' + dateStr +
+                    '&end_date=' + dateStr;
+                
+                $http.get(weatherUrl)
+                    .then(function(response) {
+                        var daily = response.data.daily;
+                        if (daily && daily.time && daily.time.length > 0) {
+                            $scope.weather = {
+                                temperature_max: daily.temperature_2m_max[0],
+                                temperature_min: daily.temperature_2m_min[0],
+                                code: daily.weather_code[0],
+                                description: $scope.weatherCodes[daily.weather_code[0]] || 'Unknown'
+                            };
+                        }
+                        $scope.weatherLoading = false;
+                    })
+                    .catch(function(error) {
+                        console.error('Error loading weather:', error);
+                        $scope.weatherError = 'Weather data unavailable';
+                        $scope.weatherLoading = false;
+                    });
+            };
+            
+            // 获取天气图标
+            $scope.getWeatherIcon = function(code) {
+                if (code === 0) return '☀️';
+                if (code >= 1 && code <= 3) return '⛅';
+                if (code >= 45 && code <= 48) return '🌫️';
+                if (code >= 51 && code <= 55) return '🌦️';
+                if (code >= 61 && code <= 65) return '🌧️';
+                if (code >= 80 && code <= 82) return '⛈️';
+                if (code === 95) return '⚡';
+                return '🌤️';
+            };
+            
+            // 计算进度
+            $scope.getProgress = function() {
+                if (!$scope.event.goal_amount || $scope.event.goal_amount === 0) return 0;
+                return Math.min(Math.round(($scope.event.current_amount / $scope.event.goal_amount) * 100), 100);
+            };
+            
+            // 跳转到注册页面
+            $scope.goToRegister = function() {
+                $window.location.href = 'register.html?id=' + eventId;
+            };
+            
+            // 初始化
+            $scope.loadEventDetails();
         });
     </script>
+    
+    <style>
+        .event-details-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .details-section h3,
+        .weather-section h3 {
+            color: #e67e22;
+            margin-bottom: 15px;
+        }
+        
+        .description {
+            line-height: 1.8;
+            color: #555;
+        }
+        
+        .weather-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 12px;
+            color: white;
+        }
+        
+        .weather-section h3 {
+            color: white;
+        }
+        
+        .weather-info p {
+            margin: 10px 0;
+            font-size: 1.05em;
+        }
+        
+        .weather-icon {
+            font-size: 3em;
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .weather-error {
+            color: #ffcccc;
+        }
+        
+        .registrations-list {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .registration-item {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #e67e22;
+        }
+        
+        .reg-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .reg-email {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .reg-details {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .reg-amount {
+            font-weight: bold;
+            color: #27ae60;
+        }
+        
+        .reg-date {
+            color: #999;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .event-details-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .registration-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
 </body>
 </html>
