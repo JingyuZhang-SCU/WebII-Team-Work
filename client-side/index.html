@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app="charityApp">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Charity Events - Home</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
 </head>
-<body>
+<body ng-controller="HomeController">
     <!-- Navigation -->
     <nav>
         <ul>
@@ -24,49 +25,82 @@
             </div>
             <div class="contact-info">
                 <h2 style="color: white; margin-bottom: 20px;">Contact Us</h2>
-                <p>📧 Email: contact@l.tian.13@student.scu.edu.au</p>
-                <p>📞 Phone: +1 (800) 123-4567</p>
-                <p>📍 Address: 123 Charity Street, ChinaTown,CT 10001</p>
+                <p>📧 Email: contact@charityevents.org</p>
+                <p>📞 Phone: +61 1800 123 456</p>
+                <p>📍 Address: 123 Charity Street, Sydney NSW 2000</p>
             </div>
         </div>
 
         <div class="card">
-            <h2>Events</h2>
-            <div id="event-list">
-                <div class="loading">Loading...</div>
+            <h2>Upcoming Events</h2>
+            
+            <!-- Loading状态 -->
+            <div ng-show="loading" class="loading">Loading events...</div>
+            
+            <!-- 错误提示 -->
+            <div ng-show="error" class="no-results">{{error}}</div>
+            
+            <!-- 活动列表 -->
+            <div ng-show="!loading && !error" class="event-grid">
+                <div ng-repeat="event in events" class="event-card" ng-click="goToDetails(event.id)">
+                    <h3>{{event.name}}</h3>
+                    <p><strong>📅 Date:</strong> {{event.date | date:'medium'}}</p>
+                    <p><strong>📍 Location:</strong> {{event.location}}</p>
+                    <p><strong>🏷️ Category:</strong> {{event.category_name}}</p>
+                    <p><strong>💰 Ticket Price:</strong> ${{event.ticket_price}}</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" ng-style="{'width': getProgress(event) + '%'}"></div>
+                    </div>
+                    <p class="progress-text">
+                        ${{event.current_amount}} / ${{event.goal_amount}} raised ({{getProgress(event)}}%)
+                    </p>
+                </div>
+                
+                <!-- 没有活动 -->
+                <div ng-show="events.length === 0" class="no-results">
+                    No upcoming events available
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        async function loadHomeEvents() {
-            const eventList = document.getElementById('event-list');
-            eventList.innerHTML = '<div class="loading">Loading...</div>';
+        // AngularJS应用和控制器
+        var app = angular.module('charityApp', []);
+        
+        app.controller('HomeController', function($scope, $http, $window) {
+            $scope.events = [];
+            $scope.loading = true;
+            $scope.error = null;
             
-            try {
-                const response = await fetch('/api/events/home');
-                const events = await response.json();
-                
-                if (events.length === 0) {
-                    eventList.innerHTML = '<div class="no-results">No upcoming events</div>';
-                    return;
-                }
-                
-                
-                eventList.innerHTML = events.map(event => `
-                    <div class="event-card" onclick="window.location.href='event-details.html?id=${event.id}'">
-                        <h3>${event.name}</h3>
-                        <p><strong>📅 Date:</strong> ${new Date(event.date).toLocaleString()}</p>
-                        <p><strong>📍 Location:</strong> ${event.location}</p>
-                        <p><strong>🏷️ Category:</strong> ${event.category_name}</p>
-                    </div>
-                `).join('');
-            } catch (error) {
-                eventList.innerHTML = '<div class="no-results">Failed to load events</div>';
-            }
-        }
-
-        window.onload = loadHomeEvents;
+            // 加载活动列表
+            $scope.loadEvents = function() {
+                $http.get('http://localhost:3000/api/events')
+                    .then(function(response) {
+                        $scope.events = response.data;
+                        $scope.loading = false;
+                    })
+                    .catch(function(error) {
+                        console.error('Error loading events:', error);
+                        $scope.error = 'Failed to load events. Please try again later.';
+                        $scope.loading = false;
+                    });
+            };
+            
+            // 计算进度百分比
+            $scope.getProgress = function(event) {
+                if (!event.goal_amount || event.goal_amount === 0) return 0;
+                return Math.min(Math.round((event.current_amount / event.goal_amount) * 100), 100);
+            };
+            
+            // 跳转到活动详情页
+            $scope.goToDetails = function(eventId) {
+                $window.location.href = 'event-details.html?id=' + eventId;
+            };
+            
+            // 初始化加载
+            $scope.loadEvents();
+        });
     </script>
 </body>
 </html>
