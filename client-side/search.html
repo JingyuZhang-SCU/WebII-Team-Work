@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app="charityApp">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Events - Charity Events</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
 </head>
-<body>
+<body ng-controller="SearchController">
     <!-- Navigation -->
     <nav>
         <ul>
@@ -18,98 +19,129 @@
     <div class="container">
         <div class="card">
             <h1>Search Events</h1>
-            <form class="search-form" id="search-form">
+            <form class="search-form" ng-submit="searchEvents()">
                 <div class="form-group">
                     <label for="category">Category:</label>
-                    <select id="category">
+                    <select id="category" ng-model="searchParams.category">
                         <option value="">All Categories</option>
+                        <option ng-repeat="cat in categories" value="{{cat.name}}">{{cat.name}}</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
                     <label for="location">Location:</label>
-                    <input type="text" id="location" placeholder="Enter location">
+                    <input type="text" id="location" ng-model="searchParams.location" 
+                           placeholder="Enter location">
                 </div>
+                
                 <div class="form-group">
                     <label for="date">Date:</label>
-                    <input type="date" id="date">
+                    <input type="date" id="date" ng-model="searchParams.date">
                 </div>
-                <!-- ✅ 新增：Search 和 Clear 按钮容器 -->
+                
                 <div style="display: flex; gap: 15px; margin-top: 10px;">
                     <button type="submit">Search</button>
-                    <button type="button" id="clear-btn">Clear Filters</button>
+                    <button type="button" ng-click="clearFilters()">Clear Filters</button>
                 </div>
             </form>
         </div>
 
         <div class="card">
             <h2>Search Results</h2>
-            <div id="search-results">
-                <div class="no-results">Enter search criteria and click "Search"</div>
+            
+            <!-- Loading状态 -->
+            <div ng-show="loading" class="loading">Searching...</div>
+            
+            <!-- 初始状态 -->
+            <div ng-show="!searched && !loading" class="no-results">
+                Enter search criteria and click "Search"
+            </div>
+            
+            <!-- 搜索结果 -->
+            <div ng-show="searched && !loading" class="event-grid">
+                <div ng-repeat="event in results" class="event-card" ng-click="goToDetails(event.id)">
+                    <h3>{{event.name}}</h3>
+                    <p><strong>📅 Date:</strong> {{event.date | date:'medium'}}</p>
+                    <p><strong>📍 Location:</strong> {{event.location}}</p>
+                    <p><strong>🏷️ Category:</strong> {{event.category_name}}</p>
+                    <p><strong>💰 Ticket Price:</strong> ${{event.ticket_price}}</p>
+                </div>
+                
+                <!-- 没有结果 -->
+                <div ng-show="results.length === 0" class="no-results">
+                    No events found matching your criteria
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        async function loadCategories() {
-            try {
-                const response = await fetch('/api/categories');
-                const categories = await response.json();
-                const select = document.getElementById('category');
-                select.innerHTML = '<option value="">All Categories</option>' + 
-                    categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('');
-            } catch (error) {
-                console.error('Failed to load categories:', error);
-            }
-        }
-
-        // ✅ 新增：清除筛选功能
-        document.getElementById('clear-btn').addEventListener('click', () => {
-            // 重置表单所有字段
-            document.getElementById('search-form').reset();
-            // 清空搜索结果区域
-            document.getElementById('search-results').innerHTML = 
-                '<div class="no-results">Enter search criteria and click "Search"</div>';
+        var app = angular.module('charityApp', []);
+        
+        app.controller('SearchController', function($scope, $http, $window) {
+            $scope.categories = [];
+            $scope.searchParams = {
+                category: '',
+                location: '',
+                date: ''
+            };
+            $scope.results = [];
+            $scope.loading = false;
+            $scope.searched = false;
+            
+            // 加载分类列表
+            $scope.loadCategories = function() {
+                $http.get('http://localhost:3000/api/categories')
+                    .then(function(response) {
+                        $scope.categories = response.data;
+                    })
+                    .catch(function(error) {
+                        console.error('Error loading categories:', error);
+                    });
+            };
+            
+            // 搜索活动
+            $scope.searchEvents = function() {
+                $scope.loading = true;
+                $scope.searched = true;
+                
+                // 构建查询参数
+                var params = {};
+                if ($scope.searchParams.category) params.category = $scope.searchParams.category;
+                if ($scope.searchParams.location) params.location = $scope.searchParams.location;
+                if ($scope.searchParams.date) params.date = $scope.searchParams.date;
+                
+                $http.get('http://localhost:3000/api/events/search', { params: params })
+                    .then(function(response) {
+                        $scope.results = response.data;
+                        $scope.loading = false;
+                    })
+                    .catch(function(error) {
+                        console.error('Error searching events:', error);
+                        $scope.results = [];
+                        $scope.loading = false;
+                    });
+            };
+            
+            // 清除筛选
+            $scope.clearFilters = function() {
+                $scope.searchParams = {
+                    category: '',
+                    location: '',
+                    date: ''
+                };
+                $scope.results = [];
+                $scope.searched = false;
+            };
+            
+            // 跳转到详情页
+            $scope.goToDetails = function(eventId) {
+                $window.location.href = 'event-details.html?id=' + eventId;
+            };
+            
+            // 初始化
+            $scope.loadCategories();
         });
-
-        document.getElementById('search-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const category = document.getElementById('category').value;
-            const location = document.getElementById('location').value;
-            const date = document.getElementById('date').value;
-            
-            const results = document.getElementById('search-results');
-            results.innerHTML = '<div class="loading">Searching...</div>';
-            
-            try {
-                const params = new URLSearchParams();
-                if (category) params.append('category', category);
-                if (location) params.append('location', location);
-                if (date) params.append('date', date);
-                
-                const response = await fetch('/api/events/search?' + params.toString());
-                const events = await response.json();
-                
-                if (events.length === 0) {
-                    results.innerHTML = '<div class="no-results">No events found</div>';
-                    return;
-                }
-                
-                results.innerHTML = '<div class="event-grid">' +
-                    events.map(event => `
-                        <div class="event-card" onclick="window.location.href='event-details.html?id=${event.id}'">
-                            <h3>${event.name}</h3>
-                            <p><strong>📅 Date:</strong> ${new Date(event.date).toLocaleString()}</p>
-                            <p><strong>📍 Location:</strong> ${event.location}</p>
-                            <p><strong>🏷️ Category:</strong> ${event.category_name}</p>
-                        </div>
-                    `).join('') + '</div>';
-            } catch (error) {
-                results.innerHTML = '<div class="no-results">Search failed</div>';
-            }
-        });
-
-        window.onload = loadCategories;
     </script>
 </body>
 </html>
