@@ -1,0 +1,148 @@
+<!-- admin-angular/src/app/components/event-edit/event-edit.component.html -->
+
+<div class="event-edit-container">
+    <div class="header-section">
+        <h2>✏️ Edit Event</h2>
+        <button routerLink="/events" class="btn-back">
+            ← Back to List
+        </button>
+    </div>
+
+    <div *ngIf="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading event details...</p>
+    </div>
+
+    <div *ngIf="!loading && originalEvent" class="content-grid">
+        <div class="form-card">
+            <h3>Event Information</h3>
+            <form (ngSubmit)="onSubmit()" #eventForm="ngForm">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="name">Event Name *</label>
+                        <input type="text" id="name" [(ngModel)]="event.name" name="name" required #name="ngModel" />
+                        <div *ngIf="name.invalid && name.touched" class="error">
+                            Event name is required
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="description">Description</label>
+                        <textarea id="description" [(ngModel)]="event.description" name="description"
+                            rows="4"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="date">Date & Time *</label>
+                        <input type="datetime-local" id="date" [(ngModel)]="event.date" name="date" required
+                            #date="ngModel" />
+                        <div *ngIf="date.invalid && date.touched" class="error">
+                            Date is required
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Category *</label>
+                        <select id="category" [(ngModel)]="event.category_id" name="category" required
+                            #category="ngModel">
+                            <option *ngFor="let cat of categories" [value]="cat.id">
+                                {{ cat.name }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="location">Location *</label>
+                        <input type="text" id="location" [(ngModel)]="event.location" name="location" required
+                            #location="ngModel" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="latitude">Latitude (Optional)</label>
+                        <input type="number" id="latitude" [(ngModel)]="event.latitude" name="latitude"
+                            step="0.000001" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="longitude">Longitude (Optional)</label>
+                        <input type="number" id="longitude" [(ngModel)]="event.longitude" name="longitude"
+                            step="0.000001" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ticketPrice">Ticket Price ($) *</label>
+                        <input type="number" id="ticketPrice" [(ngModel)]="event.ticket_price" name="ticketPrice"
+                            required min="0" step="0.01" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="goalAmount">Fundraising Goal ($) *</label>
+                        <input type="number" id="goalAmount" [(ngModel)]="event.goal_amount" name="goalAmount" required
+                            min="0" step="0.01" />
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="checkbox-label">
+                            <input type="checkbox" [(ngModel)]="event.is_active" name="isActive" />
+                            <span>Event is Active</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div *ngIf="errorMessage" class="error-message">
+                    {{ errorMessage }}
+                </div>
+
+                <div *ngIf="successMessage" class="success-message">
+                    {{ successMessage }}
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit" [disabled]="eventForm.invalid || submitting">
+                        <span *ngIf="!submitting">✓ Update Event</span>
+                        <span *ngIf="submitting">Updating...</span>
+                    </button>
+                    <button type="button" routerLink="/events" class="btn-cancel">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="info-card">
+            <h3>📊 Event Statistics</h3>
+            <div class="stat-item">
+                <span class="stat-label">Event ID:</span>
+                <span class="stat-value">{{ originalEvent.id }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Current Amount Raised:</span>
+                <span class="stat-value">${{ originalEvent.current_amount }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Total Registrations:</span>
+                <span class="stat-value">{{ originalEvent.registration_count || 0 }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Progress:</span>
+                <div class="progress-section">
+                    <div class="progress-bar">
+                        <div class="progress-fill" [style.width.%]="getProgress()"></div>
+                    </div>
+                    <span class="progress-text">{{ getProgress().toFixed(1) }}%</span>
+                </div>
+            </div>
+
+            <div class="registrations-section"
+                *ngIf="originalEvent.registrations && originalEvent.registrations.length > 0">
+                <h4>Recent Registrations</h4>
+                <div class="registration-list">
+                    <div *ngFor="let reg of originalEvent.registrations.slice(0, 5)" class="reg-item">
+                        <strong>{{ reg.full_name }}</strong>
+                        <span class="reg-details">{{ reg.tickets_count }} ticket(s) • ${{ reg.total_amount }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
