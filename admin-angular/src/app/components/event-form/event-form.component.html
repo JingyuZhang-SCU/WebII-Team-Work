@@ -1,0 +1,116 @@
+<!-- admin-angular/src/app/components/event-form/event-form.component.html -->
+
+<div class="event-form-container">
+    <div class="header-section">
+        <h2>➕ Create New Event</h2>
+        <button routerLink="/events" class="btn-back">
+            ← Back to List
+        </button>
+    </div>
+
+    <div class="form-card">
+        <form (ngSubmit)="onSubmit()" #eventForm="ngForm">
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="name">Event Name *</label>
+                    <input type="text" id="name" [(ngModel)]="event.name" name="name" required #name="ngModel"
+                        placeholder="Enter event name" />
+                    <div *ngIf="name.invalid && name.touched" class="error">
+                        Event name is required
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="description">Description</label>
+                    <textarea id="description" [(ngModel)]="event.description" name="description" rows="4"
+                        placeholder="Enter event description"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="date">Date & Time *</label>
+                    <input type="datetime-local" id="date" [(ngModel)]="event.date" name="date" required
+                        #date="ngModel" />
+                    <div *ngIf="date.invalid && date.touched" class="error">
+                        Date is required
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category *</label>
+                    <select id="category" [(ngModel)]="event.category_id" name="category" required #category="ngModel">
+                        <option value="" disabled>Select category</option>
+                        <option *ngFor="let cat of categories" [value]="cat.id">
+                            {{ cat.name }}
+                        </option>
+                    </select>
+                    <div *ngIf="category.invalid && category.touched" class="error">
+                        Category is required
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="location">Location *</label>
+                    <input type="text" id="location" [(ngModel)]="event.location" name="location" required
+                        #location="ngModel" placeholder="Enter event location" />
+                    <div *ngIf="location.invalid && location.touched" class="error">
+                        Location is required
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="latitude">Latitude (Optional)</label>
+                    <input type="number" id="latitude" [(ngModel)]="event.latitude" name="latitude" step="0.000001"
+                        placeholder="-33.8688" />
+                    <small>For weather forecast feature</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="longitude">Longitude (Optional)</label>
+                    <input type="number" id="longitude" [(ngModel)]="event.longitude" name="longitude" step="0.000001"
+                        placeholder="151.2093" />
+                    <small>For weather forecast feature</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="ticketPrice">Ticket Price ($) *</label>
+                    <input type="number" id="ticketPrice" [(ngModel)]="event.ticket_price" name="ticketPrice" required
+                        min="0" step="0.01" #ticketPrice="ngModel" />
+                    <div *ngIf="ticketPrice.invalid && ticketPrice.touched" class="error">
+                        Valid ticket price is required
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="goalAmount">Fundraising Goal ($) *</label>
+                    <input type="number" id="goalAmount" [(ngModel)]="event.goal_amount" name="goalAmount" required
+                        min="0" step="0.01" #goalAmount="ngModel" />
+                    <div *ngIf="goalAmount.invalid && goalAmount.touched" class="error">
+                        Fundraising goal is required
+                    </div>
+                </div>
+            </div>
+
+            <div *ngIf="errorMessage" class="error-message">
+                {{ errorMessage }}
+            </div>
+
+            <div *ngIf="successMessage" class="success-message">
+                {{ successMessage }}
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit" [disabled]="eventForm.invalid || submitting">
+                    <span *ngIf="!submitting">✓ Create Event</span>
+                    <span *ngIf="submitting">Creating...</span>
+                </button>
+                <button type="button" routerLink="/events" class="btn-cancel">
+                    Cancel
+                </button>
+            </div>
+
+            <p class="form-note">
+                * Required fields
+            </p>
+        </form>
+    </div>
+</div>
