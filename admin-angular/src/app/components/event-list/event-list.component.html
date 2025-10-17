@@ -1,0 +1,107 @@
+<!-- admin-angular/src/app/components/event-list/event-list.component.html -->
+
+<div class="event-list">
+    <div class="header-section">
+        <h2>📋 All Events</h2>
+        <button routerLink="/events/new" class="btn-create">
+            ➕ Create New Event
+        </button>
+    </div>
+
+    <div *ngIf="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading events...</p>
+    </div>
+
+    <div *ngIf="!loading && events.length === 0" class="no-events">
+        <p>No events found</p>
+        <button routerLink="/events/new" class="btn-primary">
+            Create Your First Event
+        </button>
+    </div>
+
+    <div *ngIf="!loading && events.length > 0" class="events-container">
+        <div class="events-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Event Name</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Goal</th>
+                        <th>Raised</th>
+                        <th>Reg.</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let event of events">
+                        <td>{{ event.id }}</td>
+                        <td><strong>{{ event.name }}</strong></td>
+                        <td>{{ formatDate(event.date) }}</td>
+                        <td>{{ event.location }}</td>
+                        <td>
+                            <span class="category-badge">{{ event.category_name }}</span>
+                        </td>
+                        <td>${{ event.ticket_price }}</td>
+                        <td>${{ event.goal_amount }}</td>
+                        <td>
+                            <span class="amount-raised">${{ event.current_amount }}</span>
+                            <div class="progress-bar-mini">
+                                <div class="progress-fill-mini" [style.width.%]="getProgress(event)"></div>
+                            </div>
+                        </td>
+                        <td class="text-center">{{ event.registration_count || 0 }}</td>
+                        <td>
+                            <span class="status-badge" [class.active]="event.is_active">
+                                {{ event.is_active ? 'Active' : 'Inactive' }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button [routerLink]="['/events/edit', event.id]" class="btn-icon btn-edit"
+                                    title="Edit">
+                                    ✏️
+                                </button>
+                                <button (click)="confirmDelete(event)" class="btn-icon btn-delete" title="Delete">
+                                    🗑️
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div *ngIf="showDeleteModal" class="modal-overlay" (click)="cancelDelete()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <h3>⚠️ Confirm Deletion</h3>
+            <p>Are you sure you want to delete "<strong>{{ eventToDelete?.name }}</strong>"?</p>
+
+            <div *ngIf="hasRegistrations()" class="warning-box">
+                ⚠️ This event has <strong>{{ eventToDelete?.registration_count }}</strong> registration(s).
+                Events with registrations cannot be deleted.
+            </div>
+
+            <div *ngIf="deleteError" class="error-message">
+                {{ deleteError }}
+            </div>
+
+            <div class="modal-actions">
+                <button (click)="deleteEvent()" class="btn-danger" [disabled]="deleting || hasRegistrations()">
+                    <span *ngIf="!deleting">Delete</span>
+                    <span *ngIf="deleting">Deleting...</span>
+                </button>
+                <button (click)="cancelDelete()" class="btn-cancel">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
