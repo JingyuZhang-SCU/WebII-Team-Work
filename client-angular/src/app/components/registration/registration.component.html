@@ -1,0 +1,104 @@
+<!-- client-angular/src/app/components/registration/registration.component.html -->
+
+<div class="container">
+    <button class="back-btn" [routerLink]="['/event', eventId]">← Back to Event</button>
+
+    <div *ngIf="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <div *ngIf="!loading && event" class="registration-grid">
+        <div class="event-summary-card">
+            <h2>Event Information</h2>
+            <div class="event-summary">
+                <h3>{{ event.name }}</h3>
+                <p><strong>📅 Date:</strong> {{ formatDate(event.date) }}</p>
+                <p><strong>📍 Location:</strong> {{ event.location }}</p>
+                <p><strong>🏷️ Category:</strong> {{ event.category_name }}</p>
+                <p><strong>💰 Ticket Price:</strong> ${{ event.ticket_price }} per ticket</p>
+            </div>
+
+            <div class="price-summary">
+                <h4>Price Calculation</h4>
+                <div class="price-row">
+                    <span>Ticket Price:</span>
+                    <span>${{ event.ticket_price }}</span>
+                </div>
+                <div class="price-row">
+                    <span>Number of Tickets:</span>
+                    <span>{{ registration.tickets_count }}</span>
+                </div>
+                <div class="price-row total">
+                    <span>Total Amount:</span>
+                    <span>${{ calculateTotal() }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="registration-form-card">
+            <h2>🎫 Event Registration</h2>
+
+            <div *ngIf="successMessage" class="success-message">
+                <p>{{ successMessage }}</p>
+                <div class="success-actions">
+                    <button [routerLink]="['/event', eventId]" class="btn-primary">
+                        View Event Details
+                    </button>
+                    <button routerLink="/" class="btn-secondary">
+                        Back to Home
+                    </button>
+                </div>
+            </div>
+
+            <form *ngIf="!successMessage" (ngSubmit)="onSubmit()" #regForm="ngForm">
+                <div class="form-group">
+                    <label for="fullName">Full Name *</label>
+                    <input type="text" id="fullName" [(ngModel)]="registration.full_name" name="fullName" required
+                        #fullName="ngModel" placeholder="Enter your full name" />
+                    <div *ngIf="fullName.invalid && fullName.touched" class="error">
+                        Full name is required
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" [(ngModel)]="registration.email" name="email" required email
+                        #email="ngModel" placeholder="your.email@example.com" />
+                    <div *ngIf="email.invalid && email.touched" class="error">
+                        <span *ngIf="email.errors?.['required']">Email is required</span>
+                        <span *ngIf="email.errors?.['email']">Please enter a valid email</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number (Optional)</label>
+                    <input type="tel" id="phone" [(ngModel)]="registration.phone" name="phone"
+                        placeholder="04XX XXX XXX" />
+                </div>
+
+                <div class="form-group">
+                    <label for="tickets">Number of Tickets *</label>
+                    <input type="number" id="tickets" [(ngModel)]="registration.tickets_count" name="tickets" required
+                        min="1" max="10" #tickets="ngModel" (ngModelChange)="onTicketsChange()" />
+                    <div *ngIf="tickets.invalid && tickets.touched" class="error">
+                        Please select between 1 and 10 tickets
+                    </div>
+                </div>
+
+                <div *ngIf="errorMessage" class="error-message">
+                    {{ errorMessage }}
+                </div>
+
+                <button type="submit" class="submit-btn" [disabled]="regForm.invalid || submitting">
+                    <span *ngIf="!submitting">✓ Complete Registration</span>
+                    <span *ngIf="submitting">Processing...</span>
+                </button>
+
+                <p class="form-note">
+                    * Required fields. By registering, you agree to our terms and conditions.
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
