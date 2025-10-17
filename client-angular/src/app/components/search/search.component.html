@@ -1,0 +1,70 @@
+<!-- client-angular/src/app/components/search/search.component.html -->
+
+<div class="container">
+    <div class="search-card">
+        <h1>🔍 Search Events</h1>
+
+        <form class="search-form" (ngSubmit)="onSearch()">
+            <div class="form-group">
+                <label for="category">Category:</label>
+                <select id="category" [(ngModel)]="searchParams.category" name="category">
+                    <option value="">All Categories</option>
+                    <option *ngFor="let cat of categories" [value]="cat.name">
+                        {{ cat.name }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="location">Location:</label>
+                <input type="text" id="location" [(ngModel)]="searchParams.location" name="location"
+                    placeholder="Enter location" />
+            </div>
+
+            <div class="form-group">
+                <label for="date">Date:</label>
+                <input type="date" id="date" [(ngModel)]="searchParams.date" name="date" />
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn-primary">
+                    🔍 Search
+                </button>
+                <button type="button" class="btn-secondary" (click)="onClear()">
+                    🔄 Clear Filters
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="results-card">
+        <h2>Search Results</h2>
+
+        <div *ngIf="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Searching...</p>
+        </div>
+
+        <div *ngIf="!hasSearched && !loading" class="no-search">
+            Enter search criteria and click "Search"
+        </div>
+
+        <div *ngIf="hasSearched && !loading && events.length === 0" class="no-results">
+            No events found matching your criteria
+        </div>
+
+        <div class="events-grid" *ngIf="!loading && events.length > 0">
+            <div *ngFor="let event of events" class="event-card" [routerLink]="['/event', event.id]">
+                <div class="event-header">
+                    <h3>{{ event.name }}</h3>
+                    <span class="category-badge">{{ event.category_name }}</span>
+                </div>
+                <div class="event-details">
+                    <p><strong>📅 Date:</strong> {{ formatDate(event.date) }}</p>
+                    <p><strong>📍 Location:</strong> {{ event.location }}</p>
+                    <p><strong>💰 Ticket Price:</strong> ${{ event.ticket_price }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
