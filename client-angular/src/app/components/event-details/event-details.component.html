@@ -1,0 +1,126 @@
+<!-- client-angular/src/app/components/event-details/event-details.component.html -->
+
+<div class="container">
+    <button class="back-btn" routerLink="/search">← Back to Search</button>
+
+    <div *ngIf="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading event details...</p>
+    </div>
+
+    <div *ngIf="error" class="error-message">
+        {{ error }}
+    </div>
+
+    <div *ngIf="!loading && !error && event" class="content-grid">
+        <div class="main-content">
+            <div class="event-card">
+                <h1>{{ event.name }}</h1>
+
+                <div class="event-info">
+                    <div class="info-item">
+                        <span class="icon">📅</span>
+                        <div>
+                            <strong>Date & Time</strong>
+                            <p>{{ formatDate(event.date) }}</p>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="icon">📍</span>
+                        <div>
+                            <strong>Location</strong>
+                            <p>{{ event.location }}</p>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="icon">🏷️</span>
+                        <div>
+                            <strong>Category</strong>
+                            <p>{{ event.category_name }}</p>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="icon">💰</span>
+                        <div>
+                            <strong>Ticket Price</strong>
+                            <p>${{ event.ticket_price }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="description-section">
+                    <h3>About This Event</h3>
+                    <p>{{ event.description || 'No description available' }}</p>
+                </div>
+
+                <div class="fundraising-section">
+                    <h3>Fundraising Progress</h3>
+                    <div class="progress-info">
+                        <span>Goal: ${{ event.goal_amount }}</span>
+                        <span>Raised: ${{ event.current_amount }}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" [style.width.%]="getProgress()"></div>
+                    </div>
+                    <p class="progress-text">
+                        {{ getProgress().toFixed(1) }}% of goal reached
+                    </p>
+                </div>
+
+                <button class="register-btn" [routerLink]="['/register', event.id]">
+                    🎫 Register Now
+                </button>
+            </div>
+
+            <!-- Weather Widget -->
+            <div class="weather-card" *ngIf="event.latitude && event.longitude">
+                <h3>🌤️ Weather Forecast</h3>
+                <div *ngIf="loadingWeather" class="weather-loading">
+                    Loading weather data...
+                </div>
+                <div *ngIf="!loadingWeather && weatherData" class="weather-info">
+                    <div class="weather-item">
+                        <span class="weather-icon">{{ weatherIcon }}</span>
+                        <div class="weather-details">
+                            <strong>{{ weatherDescription }}</strong>
+                            <p>{{ weatherTemp }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="!loadingWeather && !weatherData" class="weather-error">
+                    Weather data unavailable
+                </div>
+            </div>
+        </div>
+
+        <!-- Registrations Sidebar -->
+        <div class="sidebar">
+            <div class="registrations-card">
+                <h3>📋 Recent Registrations</h3>
+
+                <div *ngIf="!event.registrations || event.registrations.length === 0" class="no-registrations">
+                    No registrations yet. Be the first to register!
+                </div>
+
+                <div *ngIf="event.registrations && event.registrations.length > 0" class="registrations-list">
+                    <div *ngFor="let reg of event.registrations" class="registration-item">
+                        <div class="reg-header">
+                            <strong>{{ reg.full_name }}</strong>
+                            <span class="ticket-count">{{ reg.tickets_count }} ticket(s)</span>
+                        </div>
+                        <p class="reg-date">{{ formatDate(reg.registration_date) }}</p>
+                        <p class="reg-amount">${{ reg.total_amount }}</p>
+                    </div>
+                </div>
+
+                <div *ngIf="event.registrations && event.registrations.length > 0" class="registration-summary">
+                    <strong>Total Registrations:</strong>
+                    <span>{{ event.registrations.length }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
