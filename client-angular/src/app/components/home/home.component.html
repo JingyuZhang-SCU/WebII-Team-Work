@@ -1,0 +1,58 @@
+<!-- client-angular/src/app/components/home/home.component.html -->
+
+<div class="container">
+    <div class="hero-card">
+        <h1>🎗️ Welcome to Charity Events</h1>
+        <p class="subtitle">Discover meaningful events and make a difference</p>
+        <p class="description">
+            Browse upcoming charity events, search by category or location, and register to participate!
+        </p>
+
+        <div class="contact-info">
+            <h2>Contact Us</h2>
+            <p>📧 Email: contact&#64;l.tian.13&#64;student.scu.edu.au</p>
+            <p>📞 Phone: +1 (800) 123-4567</p>
+            <p>📍 Address: 123 Charity Street, ChinaTown, CT 10001</p>
+        </div>
+    </div>
+
+    <div class="events-section">
+        <h2>Upcoming Events</h2>
+
+        <div *ngIf="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading events...</p>
+        </div>
+
+        <div *ngIf="error" class="error-message">
+            {{ error }}
+        </div>
+
+        <div *ngIf="!loading && !error && events.length === 0" class="no-events">
+            No upcoming events at the moment. Check back soon!
+        </div>
+
+        <div class="events-grid" *ngIf="!loading && !error && events.length > 0">
+            <div *ngFor="let event of events" class="event-card" [routerLink]="['/event', event.id]">
+                <div class="event-header">
+                    <h3>{{ event.name }}</h3>
+                    <span class="category-badge">{{ event.category_name }}</span>
+                </div>
+                <div class="event-details">
+                    <p><strong>📅 Date:</strong> {{ formatDate(event.date) }}</p>
+                    <p><strong>📍 Location:</strong> {{ event.location }}</p>
+                    <p><strong>💰 Ticket Price:</strong> ${{ event.ticket_price }}</p>
+                    <div class="progress-section">
+                        <div class="progress-info">
+                            <span>Goal: ${{ event.goal_amount }}</span>
+                            <span>Raised: ${{ event.current_amount }}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" [style.width.%]="getProgress(event)"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
