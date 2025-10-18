@@ -1,5 +1,4 @@
-// admin-angular/src/app/components/dashboard/dashboard.component.ts
-
+// Admin dashboard component displaying event statistics
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -18,6 +17,7 @@ export class DashboardComponent implements OnInit {
   recentEvents: Event[] = [];
   loading = false;
 
+  // Statistics
   totalEvents = 0;
   activeEvents = 0;
   totalRegistrations = 0;
@@ -29,6 +29,7 @@ export class DashboardComponent implements OnInit {
     this.loadDashboardData();
   }
 
+  // Load all events and calculate statistics
   loadDashboardData(): void {
     this.loading = true;
 
@@ -36,7 +37,7 @@ export class DashboardComponent implements OnInit {
       next: (data) => {
         this.events = data;
         this.calculateStats();
-        this.recentEvents = data.slice(0, 5);
+        this.recentEvents = data.slice(0, 5); // Show 5 most recent events
         this.loading = false;
       },
       error: (err) => {
@@ -46,19 +47,23 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  // Calculate dashboard statistics
   calculateStats(): void {
     this.totalEvents = this.events.length;
     this.activeEvents = this.events.filter(e => e.is_active).length;
     this.totalRegistrations = this.events.reduce((sum, e) => sum + (e.registration_count || 0), 0);
     
+    // Calculate total amount raised across all events
     this.totalRaised = this.events.reduce((sum, e) => {
       const amount = Number(e.current_amount) || 0;
       return sum + amount;
     }, 0);
     
+    // Round to 2 decimal places
     this.totalRaised = Math.round(this.totalRaised * 100) / 100;
   }
 
+  // Format date for display
   formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-AU', {

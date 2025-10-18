@@ -1,5 +1,4 @@
-// client-angular/src/app/components/home/home.component.ts
-
+// Client home page component displaying upcoming events
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -24,6 +23,7 @@ export class HomeComponent implements OnInit {
     this.loadEvents();
   }
 
+  // Load upcoming active events
   loadEvents(): void {
     this.loading = true;
     this.error = '';
@@ -41,6 +41,7 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  // Format date for display
   formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleString('en-AU', {
@@ -52,6 +53,7 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  // Calculate fundraising progress percentage
   getProgress(event: Event): number {
     if (event.goal_amount === 0) return 0;
     return Math.min((event.current_amount / event.goal_amount) * 100, 100);

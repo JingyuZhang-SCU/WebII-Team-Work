@@ -1,4 +1,6 @@
-/* admin-angular/src/app/app.css */
+/* ========================================
+   ADMIN APP.CSS 
+   ======================================== */
 
 .admin-layout {
     display: flex;
@@ -7,7 +9,7 @@
     position: relative;
 }
 
-/* 移动端菜单按钮 */
+/* Mobile menu toggle button */
 .mobile-menu-toggle {
     display: none;
     position: fixed;
@@ -38,6 +40,7 @@
     transition: all 0.3s ease;
 }
 
+/* Hamburger menu animation when active */
 .mobile-menu-toggle.active span:nth-child(1) {
     transform: rotate(45deg) translate(8px, 8px);
 }
@@ -50,7 +53,7 @@
     transform: rotate(-45deg) translate(7px, -7px);
 }
 
-/* 遮罩层 */
+/* Mobile overlay backdrop */
 .mobile-overlay {
     display: none;
     position: fixed;
@@ -213,17 +216,14 @@
 
 @media (max-width: 768px) {
 
-    /* 显示移动端菜单按钮 */
     .mobile-menu-toggle {
         display: flex;
     }
 
-    /* 显示遮罩层 */
     .mobile-overlay {
         display: block;
     }
 
-    /* 侧边栏默认隐藏在左侧 */
     .sidebar {
         position: fixed;
         width: 280px;
@@ -231,12 +231,10 @@
         transform: translateX(-100%);
     }
 
-    /* 打开状态 */
     .sidebar.mobile-open {
         transform: translateX(0);
     }
 
-    /* 主内容区域 */
     .main-content {
         margin-left: 0;
         width: 100%;
@@ -244,7 +242,6 @@
 
     .header {
         padding: 20px 20px 20px 75px;
-        /* 左侧留空给菜单按钮 */
     }
 
     .header h1 {

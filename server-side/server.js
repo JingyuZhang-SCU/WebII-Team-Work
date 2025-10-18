@@ -6,14 +6,16 @@ const connection = require('./event_db');
 const app = express();
 const port = 3000;
 
+// Enable CORS for cross-origin requests
 app.use(cors());
+// Parse JSON request bodies
 app.use(express.json());
 
 // ============================================
-// 客户端 API
+// Client-side API endpoints
 // ============================================
 
-// 0. 获取所有活动（无实际用途，仅作测试使用）
+// Get all active events (for testing purposes)
 app.get('/api/events', (req, res) => {
   const query = `
     SELECT e.*, c.name AS category_name 
@@ -29,9 +31,7 @@ app.get('/api/events', (req, res) => {
   });
 });
 
-
-
-// 1. 首页API：获取所有活跃的未来活动
+// Home page: Get all active upcoming events
 app.get('/api/events/home', (req, res) => {
   const query = `
     SELECT e.*, c.name AS category_name 
@@ -46,7 +46,7 @@ app.get('/api/events/home', (req, res) => {
   });
 });
 
-// 2. 搜索API：根据条件筛选活动
+// Search events by category, location, or date
 app.get('/api/events/search', (req, res) => {
   const { category, location, date } = req.query;
   let query = `
@@ -57,6 +57,7 @@ app.get('/api/events/search', (req, res) => {
   `;
   let params = [];
 
+  // Add filters based on query parameters
   if (category) {
     query += ` AND c.name = ?`;
     params.push(category);
@@ -78,7 +79,7 @@ app.get('/api/events/search', (req, res) => {
   });
 });
 
-// 3. 获取所有类别
+// Get all event categories
 app.get('/api/categories', (req, res) => {
   connection.query('SELECT * FROM categories', (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -86,11 +87,11 @@ app.get('/api/categories', (req, res) => {
   });
 });
 
-// 4. 活动详情API（改进版 - 包含注册列表）
+// Get event details including registrations
 app.get('/api/events/:id', (req, res) => {
   const eventId = req.params.id;
   
-  // 获取活动详情
+  // Query for event details
   const eventQuery = `
     SELECT e.*, c.name AS category_name 
     FROM events e 
@@ -98,7 +99,7 @@ app.get('/api/events/:id', (req, res) => {
     WHERE e.id = ?
   `;
   
-  // 获取该活动的注册列表
+  // Query for event registrations
   const registrationsQuery = `
     SELECT id, full_name, email, phone, tickets_count, total_amount, registration_date
     FROM registrations
@@ -114,7 +115,7 @@ app.get('/api/events/:id', (req, res) => {
     
     const event = eventResults[0];
     
-    // 获取注册信息
+    // Fetch registrations for this event
     connection.query(registrationsQuery, [eventId], (err, registrations) => {
       if (err) return res.status(500).json({ error: err.message });
       
@@ -124,18 +125,18 @@ app.get('/api/events/:id', (req, res) => {
   });
 });
 
-// 5. 创建注册
+// Create a new registration for an event
 app.post('/api/registrations', (req, res) => {
   const { event_id, full_name, email, phone, tickets_count } = req.body;
   
-  // 验证必填字段
+  // Validate required fields
   if (!event_id || !full_name || !email || !tickets_count) {
     return res.status(400).json({ 
       error: 'Missing required fields: event_id, full_name, email, tickets_count' 
     });
   }
   
-  // 首先获取活动信息以计算总金额
+  // Get event details to calculate total amount
   const eventQuery = 'SELECT ticket_price, current_amount FROM events WHERE id = ?';
   
   connection.query(eventQuery, [event_id], (err, eventResults) => {
@@ -147,7 +148,7 @@ app.post('/api/registrations', (req, res) => {
     const event = eventResults[0];
     const total_amount = event.ticket_price * tickets_count;
     
-    // 插入注册记录
+    // Insert registration record
     const insertQuery = `
       INSERT INTO registrations (event_id, full_name, email, phone, tickets_count, total_amount)
       VALUES (?, ?, ?, ?, ?, ?)
@@ -158,7 +159,7 @@ app.post('/api/registrations', (req, res) => {
       [event_id, full_name, email, phone || null, tickets_count, total_amount],
       (err, result) => {
         if (err) {
-          // 检查是否是重复注册
+          // Check for duplicate registration
           if (err.code === 'ER_DUP_ENTRY') {
             return res.status(409).json({ 
               error: 'You have already registered for this event' 
@@ -167,7 +168,7 @@ app.post('/api/registrations', (req, res) => {
           return res.status(500).json({ error: err.message });
         }
         
-        // 更新活动的当前筹款金额
+        // Update event's current fundraising amount
         const updateEventQuery = `
           UPDATE events 
           SET current_amount = current_amount + ? 
@@ -188,7 +189,7 @@ app.post('/api/registrations', (req, res) => {
   });
 });
 
-// 6. 天气API代理
+// Weather API proxy (fetches data from Open-Meteo)
 app.get('/api/weather', async (req, res) => {
   const { latitude, longitude, date } = req.query;
   
@@ -197,7 +198,7 @@ app.get('/api/weather', async (req, res) => {
   }
   
   try {
-    // 使用动态 import 导入 node-fetch
+    // Dynamic import for node-fetch (ES module)
     const fetch = (await import('node-fetch')).default;
     
     const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Australia%2FSydney`;
@@ -212,10 +213,10 @@ app.get('/api/weather', async (req, res) => {
 });
 
 // ============================================
-// 管理端 API
+// Admin API endpoints
 // ============================================
 
-// 7. 获取所有活动（管理端用）
+// Get all events with registration count (for admin dashboard)
 app.get('/api/admin/events', (req, res) => {
   const query = `
     SELECT e.*, c.name AS category_name,
@@ -231,14 +232,14 @@ app.get('/api/admin/events', (req, res) => {
   });
 });
 
-// 8. 创建新活动
+// Create a new event
 app.post('/api/events', (req, res) => {
   const { 
     name, description, date, location, latitude, longitude,
     ticket_price, goal_amount, category_id 
   } = req.body;
   
-  // 验证必填字段
+  // Validate required fields
   if (!name || !date || !location || !category_id) {
     return res.status(400).json({ 
       error: 'Missing required fields: name, date, location, category_id' 
@@ -273,7 +274,7 @@ app.post('/api/events', (req, res) => {
   });
 });
 
-// 9. 更新活动
+// Update an existing event
 app.put('/api/events/:id', (req, res) => {
   const eventId = req.params.id;
   const { 
@@ -306,11 +307,11 @@ app.put('/api/events/:id', (req, res) => {
   });
 });
 
-// 10. 删除活动
+// Delete an event (only if no registrations exist)
 app.delete('/api/events/:id', (req, res) => {
   const eventId = req.params.id;
   
-  // 首先检查是否有注册记录
+  // Check if event has any registrations
   const checkQuery = 'SELECT COUNT(*) AS count FROM registrations WHERE event_id = ?';
   
   connection.query(checkQuery, [eventId], (err, results) => {
@@ -318,6 +319,7 @@ app.delete('/api/events/:id', (req, res) => {
     
     const registrationCount = results[0].count;
     
+    // Prevent deletion if registrations exist
     if (registrationCount > 0) {
       return res.status(409).json({ 
         error: 'Cannot delete event with existing registrations',
@@ -325,7 +327,7 @@ app.delete('/api/events/:id', (req, res) => {
       });
     }
     
-    // 没有注册记录，可以删除
+    // Delete event
     const deleteQuery = 'DELETE FROM events WHERE id = ?';
     
     connection.query(deleteQuery, [eventId], (err, result) => {
@@ -341,21 +343,21 @@ app.delete('/api/events/:id', (req, res) => {
 });
 
 // ============================================
-// 静态文件服务
+// Static file serving
 // ============================================
 
-// 客户端应用
+// Serve client application
 app.use('/client', express.static(path.join(__dirname, '..', 'client-angular', 'dist', 'client-angular', 'browser')));
 
-// 管理端应用
+// Serve admin application
 app.use('/admin', express.static(path.join(__dirname, '..', 'admin-angular', 'dist', 'admin-angular', 'browser')));
 
-// 默认路由
+// Default route redirects to client
 app.get('/', (req, res) => {
   res.redirect('/client');
 });
 
-// 启动服务器
+// Start server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
   console.log(`Client app: http://localhost:${port}/client`);

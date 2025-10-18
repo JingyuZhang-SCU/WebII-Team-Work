@@ -1,5 +1,4 @@
-// client-angular/src/app/components/search/search.component.ts
-
+// Event search page with filters
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -20,6 +19,7 @@ export class SearchComponent implements OnInit {
   loading = false;
   hasSearched = false;
   
+  // Search filters
   searchParams = {
     category: '',
     location: '',
@@ -32,6 +32,7 @@ export class SearchComponent implements OnInit {
     this.loadCategories();
   }
 
+  // Load all available categories
   loadCategories(): void {
     this.eventService.getCategories().subscribe({
       next: (data) => {
@@ -43,6 +44,7 @@ export class SearchComponent implements OnInit {
     });
   }
 
+  // Search events with current filters
   onSearch(): void {
     this.loading = true;
     this.hasSearched = true;
@@ -64,6 +66,7 @@ export class SearchComponent implements OnInit {
     });
   }
 
+  // Clear all search filters
   onClear(): void {
     this.searchParams = {
       category: '',
@@ -74,6 +77,7 @@ export class SearchComponent implements OnInit {
     this.hasSearched = false;
   }
 
+  // Format date for display
   formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleString('en-AU', {

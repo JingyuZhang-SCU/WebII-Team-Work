@@ -1,5 +1,4 @@
-// src/app/services/event.service.ts
-
+// Admin service for managing events
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -13,32 +12,32 @@ export class EventService {
 
   constructor(private http: HttpClient) {}
 
-  // 获取所有活动（管理端用）
+  // Get all events for admin dashboard
   getAllEvents(): Observable<Event[]> {
     return this.http.get<Event[]>(`${this.apiUrl}/admin/events`);
   }
 
-  // 获取单个活动详情
+  // Get single event details
   getEventDetails(id: number): Observable<Event> {
     return this.http.get<Event>(`${this.apiUrl}/events/${id}`);
   }
 
-  // 获取所有分类
+  // Get all categories
   getCategories(): Observable<Category[]> {
     return this.http.get<Category[]>(`${this.apiUrl}/categories`);
   }
 
-  // 创建新活动
+  // Create a new event
   createEvent(event: CreateEvent): Observable<any> {
     return this.http.post(`${this.apiUrl}/events`, event);
   }
 
-  // 更新活动
+  // Update an existing event
   updateEvent(id: number, event: UpdateEvent): Observable<any> {
     return this.http.put(`${this.apiUrl}/events/${id}`, event);
   }
 
-  // 删除活动
+  // Delete an event
   deleteEvent(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/events/${id}`);
   }

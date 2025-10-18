@@ -1,5 +1,4 @@
-// client-angular/src/app/components/event-details/event-details.component.ts
-
+// Event details page showing full event information and weather
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -19,6 +18,7 @@ export class EventDetailsComponent implements OnInit {
   loading = false;
   error = '';
   
+  // Weather data
   weatherData: any = null;
   loadingWeather = false;
   weatherDescription = '';
@@ -33,12 +33,14 @@ export class EventDetailsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Get event ID from route
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.loadEventDetails(+id);
     }
   }
 
+  // Load event details
   loadEventDetails(id: number): void {
     this.loading = true;
     this.error = '';
@@ -48,6 +50,7 @@ export class EventDetailsComponent implements OnInit {
         this.event = data;
         this.loading = false;
         
+        // Load weather if coordinates are available
         if (data.latitude && data.longitude) {
           this.loadWeather(data.latitude, data.longitude);
         }
@@ -60,6 +63,7 @@ export class EventDetailsComponent implements OnInit {
     });
   }
 
+  // Fetch weather forecast for event location
   loadWeather(latitude: number, longitude: number): void {
     this.loadingWeather = true;
     
@@ -68,6 +72,7 @@ export class EventDetailsComponent implements OnInit {
         this.weatherData = data;
         this.loadingWeather = false;
         
+        // Extract weather information from first day of forecast
         if (data.daily && data.daily.weather_code && data.daily.weather_code.length > 0) {
           const code = data.daily.weather_code[0];
           const maxTemp = data.daily.temperature_2m_max[0];
@@ -85,6 +90,7 @@ export class EventDetailsComponent implements OnInit {
     });
   }
 
+  // Format date for display
   formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleString('en-AU', {
@@ -96,6 +102,7 @@ export class EventDetailsComponent implements OnInit {
     });
   }
 
+  // Calculate fundraising progress percentage
   getProgress(): number {
     if (!this.event || this.event.goal_amount === 0) return 0;
     return Math.min((this.event.current_amount / this.event.goal_amount) * 100, 100);

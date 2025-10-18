@@ -1,14 +1,12 @@
 <!-- admin-angular/src/app/app.html -->
 
 <div class="admin-layout">
-  <!-- 移动端菜单按钮 -->
   <button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen">
     <span></span>
     <span></span>
     <span></span>
   </button>
 
-  <!-- 遮罩层 -->
   <div class="mobile-overlay" *ngIf="isMobileMenuOpen" (click)="closeMobileMenu()"></div>
 
   <aside class="sidebar" [class.mobile-open]="isMobileMenuOpen">

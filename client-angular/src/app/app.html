@@ -4,14 +4,12 @@
   <div class="nav-container">
     <a routerLink="/" class="nav-brand">🎗️ Charity Events</a>
 
-    <!-- 移动端菜单按钮 -->
     <button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen">
       <span></span>
       <span></span>
       <span></span>
     </button>
 
-    <!-- 导航菜单 -->
     <ul class="nav-menu" [class.mobile-open]="isMobileMenuOpen">
       <li>
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"
@@ -27,7 +25,6 @@
     </ul>
   </div>
 
-  <!-- 移动端遮罩层 -->
   <div class="mobile-overlay" *ngIf="isMobileMenuOpen" (click)="closeMobileMenu()"></div>
 </nav>
 

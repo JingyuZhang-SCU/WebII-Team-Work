@@ -1,5 +1,4 @@
-// admin-angular/src/app/components/event-edit/event-edit.component.ts
-
+// Admin component for editing existing events
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -23,6 +22,7 @@ export class EventEditComponent implements OnInit {
   successMessage = '';
   eventId: number = 0;
 
+  // Event form data
   event: UpdateEvent = {
     name: '',
     description: '',
@@ -43,6 +43,7 @@ export class EventEditComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Get event ID from route
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.eventId = +id;
@@ -51,6 +52,7 @@ export class EventEditComponent implements OnInit {
     }
   }
 
+  // Load existing event details
   loadEventDetails(): void {
     this.loading = true;
 
@@ -58,9 +60,11 @@ export class EventEditComponent implements OnInit {
       next: (data) => {
         this.originalEvent = data;
         
+        // Convert date to format required by datetime-local input
         const date = new Date(data.date);
         const formattedDate = date.toISOString().slice(0, 16);
         
+        // Populate form with existing data
         this.event = {
           name: data.name,
           description: data.description || '',
@@ -84,6 +88,7 @@ export class EventEditComponent implements OnInit {
     });
   }
 
+  // Load all categories for dropdown
   loadCategories(): void {
     this.eventService.getCategories().subscribe({
       next: (data) => {
@@ -95,11 +100,13 @@ export class EventEditComponent implements OnInit {
     });
   }
 
+  // Submit form to update event
   onSubmit(): void {
     this.submitting = true;
     this.errorMessage = '';
     this.successMessage = '';
 
+    // Prepare event data
     const eventData: UpdateEvent = {
       ...this.event,
       description: this.event.description || undefined,
@@ -112,6 +119,7 @@ export class EventEditComponent implements OnInit {
         this.submitting = false;
         this.successMessage = 'Event updated successfully!';
         
+        // Reload event details to show updated data
         setTimeout(() => {
           this.loadEventDetails();
         }, 1000);
@@ -124,6 +132,7 @@ export class EventEditComponent implements OnInit {
     });
   }
 
+  // Calculate fundraising progress percentage
   getProgress(): number {
     if (!this.originalEvent || this.originalEvent.goal_amount === 0) return 0;
     return Math.min((this.originalEvent.current_amount / this.originalEvent.goal_amount) * 100, 100);

@@ -1,5 +1,4 @@
-// admin-angular/src/app/components/event-list/event-list.component.ts
-
+// Admin component for listing and managing all events
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -27,6 +26,7 @@ export class EventListComponent implements OnInit {
     this.loadEvents();
   }
 
+  // Load all events from API
   loadEvents(): void {
     this.loading = true;
 
@@ -42,6 +42,7 @@ export class EventListComponent implements OnInit {
     });
   }
 
+  // Format date for display
   formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-AU', {
@@ -51,17 +52,20 @@ export class EventListComponent implements OnInit {
     });
   }
 
+  // Calculate fundraising progress percentage
   getProgress(event: Event): number {
     if (event.goal_amount === 0) return 0;
     return Math.min((event.current_amount / event.goal_amount) * 100, 100);
   }
 
+  // Open delete confirmation modal
   confirmDelete(event: Event): void {
     this.eventToDelete = event;
     this.showDeleteModal = true;
     this.deleteError = '';
   }
 
+  // Delete event after confirmation
   deleteEvent(): void {
     if (!this.eventToDelete) return;
 
@@ -72,10 +76,12 @@ export class EventListComponent implements OnInit {
       next: () => {
         this.deleting = false;
         this.showDeleteModal = false;
+        // Reload events list
         this.loadEvents();
       },
       error: (err) => {
         this.deleting = false;
+        // Handle specific error cases
         if (err.status === 409) {
           this.deleteError = 'Cannot delete event with existing registrations.';
         } else {
@@ -86,12 +92,14 @@ export class EventListComponent implements OnInit {
     });
   }
 
+  // Close delete modal without deleting
   cancelDelete(): void {
     this.showDeleteModal = false;
     this.eventToDelete = null;
     this.deleteError = '';
   }
 
+  // Check if event has registrations (prevents deletion)
   hasRegistrations(): boolean {
     return (this.eventToDelete?.registration_count ?? 0) > 0;
   }

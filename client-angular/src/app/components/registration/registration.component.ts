@@ -1,5 +1,4 @@
-// client-angular/src/app/components/registration/registration.component.ts
-
+// Event registration component
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -22,6 +21,7 @@ export class RegistrationComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
 
+  // Registration form data
   registration: CreateRegistration = {
     event_id: 0,
     full_name: '',
@@ -37,6 +37,7 @@ export class RegistrationComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Get event ID from route parameter
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.eventId = +id;
@@ -45,6 +46,7 @@ export class RegistrationComponent implements OnInit {
     }
   }
 
+  // Load event details for display
   loadEventDetails(id: number): void {
     this.loading = true;
     
@@ -61,15 +63,18 @@ export class RegistrationComponent implements OnInit {
     });
   }
 
+  // Calculate total registration cost
   calculateTotal(): number {
     if (!this.event) return 0;
     return this.event.ticket_price * this.registration.tickets_count;
   }
 
+  // Handle ticket count changes
   onTicketsChange(): void {
     // Validation happens through Angular template
   }
 
+  // Submit registration form
   onSubmit(): void {
     if (!this.event) return;
 
@@ -83,6 +88,7 @@ export class RegistrationComponent implements OnInit {
       },
       error: (err) => {
         this.submitting = false;
+        // Handle specific error cases
         if (err.status === 409) {
           this.errorMessage = 'You have already registered for this event.';
         } else if (err.status === 404) {
@@ -95,6 +101,7 @@ export class RegistrationComponent implements OnInit {
     });
   }
 
+  // Format date for display
   formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleString('en-AU', {

@@ -1,5 +1,4 @@
-// admin-angular/src/app/app.component.ts
-
+// Admin application root component with navigation
 import { Component } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -15,10 +14,12 @@ export class AppComponent {
   title = 'Charity Events Admin';
   isMobileMenuOpen = false;
 
+  // Toggle mobile menu visibility
   toggleMobileMenu(): void {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
   }
 
+  // Close mobile menu
   closeMobileMenu(): void {
     this.isMobileMenuOpen = false;
   }

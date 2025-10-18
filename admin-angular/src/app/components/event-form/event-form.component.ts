@@ -1,5 +1,4 @@
-// admin-angular/src/app/components/event-form/event-form.component.ts
-
+// Admin component for creating new events
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -20,6 +19,7 @@ export class EventFormComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
 
+  // New event form data
   event: CreateEvent = {
     name: '',
     description: '',
@@ -41,6 +41,7 @@ export class EventFormComponent implements OnInit {
     this.loadCategories();
   }
 
+  // Load all categories for dropdown
   loadCategories(): void {
     this.eventService.getCategories().subscribe({
       next: (data) => {
@@ -52,11 +53,13 @@ export class EventFormComponent implements OnInit {
     });
   }
 
+  // Submit form to create new event
   onSubmit(): void {
     this.submitting = true;
     this.errorMessage = '';
     this.successMessage = '';
 
+    // Prepare event data (convert empty strings to undefined)
     const eventData: CreateEvent = {
       ...this.event,
       description: this.event.description || undefined,
@@ -69,6 +72,7 @@ export class EventFormComponent implements OnInit {
         this.submitting = false;
         this.successMessage = 'Event created successfully!';
         
+        // Redirect to event list after 2 seconds
         setTimeout(() => {
           this.router.navigate(['/events']);
         }, 2000);

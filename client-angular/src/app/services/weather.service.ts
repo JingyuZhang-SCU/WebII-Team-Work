@@ -1,5 +1,4 @@
-// src/app/services/weather.service.ts
-
+// Service for fetching weather data from Open-Meteo API
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -13,6 +12,7 @@ export class WeatherService {
 
   constructor(private http: HttpClient) {}
 
+  // Fetch weather data for given coordinates
   getWeather(latitude: number, longitude: number): Observable<WeatherData> {
     const params = new HttpParams()
       .set('latitude', latitude.toString())
@@ -21,7 +21,7 @@ export class WeatherService {
     return this.http.get<WeatherData>(`${this.apiUrl}/weather`, { params });
   }
 
-  // 将天气代码转换为可读文本
+  // Convert weather code to human-readable description
   getWeatherDescription(code: number): string {
     const weatherCodes: { [key: number]: string } = {
       0: 'Clear sky',
@@ -45,7 +45,7 @@ export class WeatherService {
     return weatherCodes[code] || 'Unknown';
   }
 
-  // 获取天气图标（可选）
+  // Get weather icon emoji based on weather code
   getWeatherIcon(code: number): string {
     if (code === 0) return '☀️';
     if (code >= 1 && code <= 3) return '⛅';
