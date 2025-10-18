@@ -13,6 +13,24 @@ app.use(express.json());
 // 客户端 API
 // ============================================
 
+// 0. 获取所有活动（无实际用途，仅作测试使用）
+app.get('/api/events', (req, res) => {
+  const query = `
+    SELECT e.*, c.name AS category_name 
+    FROM events e 
+    JOIN categories c ON e.category_id = c.id 
+    WHERE e.is_active = TRUE
+    ORDER BY e.date ASC
+  `;
+  
+  connection.query(query, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+
+
 // 1. 首页API：获取所有活跃的未来活动
 app.get('/api/events/home', (req, res) => {
   const query = `
