@@ -1,27 +1,36 @@
 <!-- admin-angular/src/app/app.html -->
 
 <div class="admin-layout">
-  <aside class="sidebar">
+  <!-- 移动端菜单按钮 -->
+  <button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <!-- 遮罩层 -->
+  <div class="mobile-overlay" *ngIf="isMobileMenuOpen" (click)="closeMobileMenu()"></div>
+
+  <aside class="sidebar" [class.mobile-open]="isMobileMenuOpen">
     <div class="sidebar-header">
       <h2>🎗️ Admin Panel</h2>
     </div>
     <nav class="sidebar-nav">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeMobileMenu()">
         <span class="icon">📊</span>
         Dashboard
       </a>
-      <a routerLink="/events" routerLinkActive="active">
+      <a routerLink="/events" routerLinkActive="active" (click)="closeMobileMenu()">
         <span class="icon">📅</span>
         All Events
       </a>
-      <a routerLink="/events/new" routerLinkActive="active">
+      <a routerLink="/events/new" routerLinkActive="active" (click)="closeMobileMenu()">
         <span class="icon">➕</span>
         Create Event
       </a>
     </nav>
     <div class="sidebar-footer">
-      <a href="#" class="client-link"
-        onclick="alert('Since the current system is in local static mode, there may be differences in ports. To avoid errors, no redirection operation is designed in the local static mode. This function will be implemented in the cPanel version.'); return false;">
+      <a href="http://localhost:3000/client" target="_blank" class="client-link">
         🌐 View Client Site
       </a>
     </div>
@@ -40,9 +49,7 @@
     </div>
 
     <footer class="footer">
-      <p>&copy; PROG2002 Web2_Group17. Spread love to every corner of the world!</p>
+      <p>&copy; 2025 Charity Events Admin. All rights reserved.</p>
     </footer>
   </main>
 </div>
-
-

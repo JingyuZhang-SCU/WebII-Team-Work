@@ -13,4 +13,13 @@ import { CommonModule } from '@angular/common';
 })
 export class AppComponent {
   title = 'Charity Events Admin';
+  isMobileMenuOpen = false;
+
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen = false;
+  }
 }
